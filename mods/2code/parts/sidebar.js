@@ -10,7 +10,7 @@ import { spaces, panes, focused, run, theme, layout, window, pickFolder, openOve
 import { t, resolveLocale } from "../lib/i18n.js";
 import { readProjectConfig, scriptArgv } from "../lib/config.js";
 import { place, repoOf } from "../lib/git.js";
-import { savedProjects, addProject, projectKey, projectName, checkouts } from "../lib/projects.js";
+import { savedProjects, addProject, removeProject, projectKey, projectName, checkouts } from "../lib/projects.js";
 import { githubOwner, githubAvatar } from "../lib/os.js";
 import { icon, stop, dot, worst, find } from "../lib/ui.js";
 
@@ -100,7 +100,9 @@ export class Sidebar {
           }
           addProject(this.repo[s.id].main, s.machine ?? null);
         }
-        // Every project's checkouts, and its GitHub avatar once.
+        // Every project's checkouts, and its GitHub avatar once. A project saved
+        // from a removed folder ("<path> (deleted)", see above) can't come back.
+        for (const p of savedProjects()) if (p.path.endsWith(" (deleted)")) removeProject(p.path, p.machine ?? null);
         for (const p of savedProjects()) {
           const key = projectKey(p);
           this.checkouts[key] = await checkouts(p.path, p.machine);
