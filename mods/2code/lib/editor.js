@@ -45,7 +45,7 @@ export async function openFile(cx, { space, path, on = null, root }) {
   run("tab.new", { space: s.id, name: baseName(path), mod: "2code", props: { part: "editor", path, on, root } });
   for (let i = 0; i < 40; i++) {
     const tab = spaces().find((x) => x.id === s.id)?.tabs.find((t) => !mine.has(t.id));
-    if (tab) { setShared("2code.editors", { ...editorTabs(), [tab.id]: { path, on } }); return; }
+    if (tab) { setShared("2code.editors", { ...editorTabs(), [tab.id]: { path, on, root } }); return; }
     await cx.sleep(50);
   }
 }

@@ -6,16 +6,18 @@ import { div, image } from "gpui-kit";
 import { v_flex, h_flex } from "gpui-base";
 import { spaces, panes, focused, exec, watchFolder, theme, settings, window, shared, openOverlay } from "herdr";
 import { t } from "../lib/i18n.js";
-import { READ } from "../lib/git.js";
+import { READ, place } from "../lib/git.js";
 import { icon } from "../lib/ui.js";
 import { fileIcon } from "../lib/fileIcons.js";
-import { openFile } from "../lib/editor.js";
+import { openFile, editorOf } from "../lib/editor.js";
 
 function location() {
   const space = spaces().find((s) => s.active), f = focused();
   const pane = f?.pane ? panes().find((p) => p.pane === f.pane) : null;
   const on = f?.pane === null ? (f.terminal?.includes("/") ? f.terminal.split("/")[0] : null) : space?.machine ?? null;
-  return { cwd: pane?.cwd || f?.cwd || space?.folder, on, space: space?.id };
+  // A file tab has no folder of its own: keep the tree it was opened from, else
+  // the space's terminals' folder (space.folder is where it was made, often ~).
+  return { cwd: pane?.cwd || f?.cwd || editorOf(f?.tab)?.root || place(space) || space?.folder, on, space: space?.id };
 }
 const key = () => JSON.stringify(location());
 const PER_FOLDER = 500, TOTAL = 5000;
