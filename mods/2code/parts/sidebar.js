@@ -91,7 +91,9 @@ export class Sidebar {
         const all = panes();
         for (const s of spaces()) {
           const at = place(s, all);
-          if (!at) continue;
+          // A terminal still inside a removed folder reports "<path> (deleted)"
+          // (Linux /proc). Adding that as a project brings back a dead entry.
+          if (!at || at.endsWith(" (deleted)")) continue;
           if (this.repo[s.id]?.at !== at) {
             const r = await repoOf(at, s.machine);
             this.repo[s.id] = r ? { at, ...r } : { at, main: at, top: at, name: at.split("/").pop() || at };
@@ -123,7 +125,8 @@ export class Sidebar {
       const list = this.checkouts[key] ?? [{ path: p.path, branch: null, main: true }];
       const profiles = list.map((c) => ({ ...c, space: mine.find(({ r }) => r.top === c.path)?.s ?? null }));
       // Spaces in this repo whose checkout git didn't list (yet): show them too.
-      for (const { s, r } of mine) if (!profiles.some((x) => x.space?.id === s.id)) profiles.push({ path: r.top, branch: s.branch, main: r.top === p.path, space: s });
+      // A second space on an already listed checkout is not another profile.
+      for (const { s, r } of mine) if (!profiles.some((x) => x.space?.id === s.id || x.path === r.top)) profiles.push({ path: r.top, branch: s.branch, main: r.top === p.path, space: s });
       for (const x of profiles) if (!x.branch && x.space?.branch) x.branch = x.space.branch;
       return { path: p.path, machine: on, on, key, name: projectName(p), profiles, avatar: this.avatars[key] ?? null };
     });
