@@ -56,7 +56,17 @@ export default class TwoCode extends View {
     const p = props() ?? {};
     const Part = PARTS[p.part];
     this.part = Part ? new Part() : new Missing(p.part);
-    this.part.init?.(p, cx);
+    // An overlay opened from a popup (the right-click menu) is created inside
+    // the popup's call, so host calls its init starts (exec) count as the
+    // popup's and are cancelled when the popup closes, leaving their promises
+    // pending forever. Start overlay parts from this copy's own timer instead.
+    if (p.overlay) {
+      this.ready = false;
+      cx.timer.after(0, (cx) => { this.part.init?.(p, cx); this.ready = true; cx.notify(); });
+    } else {
+      this.ready = true;
+      this.part.init?.(p, cx);
+    }
     // Key commands ("2code.<name>" in keys.json) reach the shown copies; each
     // part handles the ones it knows (see COMMANDS in its class).
     if (this.part.command) cx.spawn(async (cx) => {
@@ -68,6 +78,7 @@ export default class TwoCode extends View {
   }
 
   render(cx) {
+    if (!this.ready) return div();
     return this.part.render(cx);
   }
 

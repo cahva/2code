@@ -4,7 +4,11 @@ import { spaces, panes, focused, exec } from "herdr";
 export const READ = ["--no-optional-locks", "-c", "core.fsmonitor=false"];
 
 export async function git(cwd, args, on, timeout) {
-  const r = await exec("git", args, { cwd, on, ...(timeout ? { timeout } : {}) });
+  // exec throws when it can't start git at all (e.g. cwd was deleted); report
+  // that as a failed run so callers' fallbacks apply instead of aborting them.
+  let r;
+  try { r = await exec("git", args, { cwd, on, ...(timeout ? { timeout } : {}) }); }
+  catch (e) { return { ok: false, out: "", err: String(e?.message ?? e) }; }
   return { ok: r.code === 0, out: (r.stdout ?? "").trim(), err: (r.stderr || r.stdout || "").trim() };
 }
 
