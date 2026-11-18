@@ -147,7 +147,7 @@ export class Files {
 
   menu(entry, path) {
     const space = spaces().find((s) => s.active)?.id;
-    openOverlay({ mod: "2code", kind: "popup", width: 240, height: entry.dir ? 300 : 330, props: { part: "fileMenu", path: `${this.root}/${path}`, dir: entry.dir, root: this.root, on: this.on, space } });
+    openOverlay({ mod: "2code", kind: "popup", width: 240, height: 330, props: { part: "fileMenu", path: `${this.root}/${path}`, dir: entry.dir, root: this.root, on: this.on, space } });
   }
 
   rows(prefix, depth, out, th) {

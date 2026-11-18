@@ -8,6 +8,8 @@ import { reveal } from "../lib/os.js";
 import { openFile, requestEditor, baseName } from "../lib/editor.js";
 import { createFile, createFolder, rename, remove, removePermanently, openDefault, parentOf } from "../lib/fileops.js";
 import { icon, button } from "../lib/ui.js";
+import { addProject } from "../lib/projects.js";
+import { repoOf } from "../lib/git.js";
 
 const refresh = () => setShared("2code.filesRefresh", Date.now());
 
@@ -23,6 +25,8 @@ export class FileMenu {
     const dialog = (part, extra = {}) => () => openOverlay({ mod: "2code", kind: "dialog", width: 440, height: 220, props: { part, root, on, ...extra } });
     return [
       ...(!dir ? [["file", t("open"), (cx) => openFile(cx, { space, path, on, root })]] : []),
+      // A worktree folder adds its repo's main checkout, as the sidebar's + does.
+      ...(dir ? [["git-branch", t("addProject"), async () => addProject((await repoOf(path, on).catch(() => null))?.main ?? path, on ?? null)]] : []),
       ...(local ? [["external-link", t("openDefault"), () => openDefault(path)], ["folder", t("reveal"), () => reveal(dir ? path : parentOf(path))]] : []),
       ["plus", t("newFile"), dialog("filePrompt", { mode: "file", folder })],
       ["folder", t("newFolder"), dialog("filePrompt", { mode: "folder", folder })],
