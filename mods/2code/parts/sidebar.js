@@ -300,7 +300,6 @@ export class Sidebar {
 export async function openNewProfile(p) {
   const on = p.on ?? p.machine ?? null;
   const config = await readProjectConfig(p.path, on);
-  if (config.error) notify({ title: "2code", body: t("configError", { error: config.error }), level: "warning" });
   const setup = config.setup_script.length ? { tab: t("setupTab"), argv: scriptArgv(config.setup_script) } : {};
   openOverlay({ mod: "worktree", kind: "dialog", width: 460, height: 280, props: { folder: p.path, machine: on, action: "new", ...setup } });
 }

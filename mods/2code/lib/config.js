@@ -1,12 +1,17 @@
-// 2code.json: per project at the main checkout's root (worktrees use their
-// project's), and global at ~/2code/2code.json.
+// 2code's settings, kept in Herdr's shared state ("2code.config", saved in the
+// app home's shared.json), never in a repo: a cloned repo can't bring scripts
+// that 2code would run.
+//   { global: { terminal_templates }, projects: { "<machine>:<main checkout>": {...} } }
+// Per project (worktrees use their project's):
 //   setup_script / teardown_script: string[]  (each line runs with `sh -c`, in order,
 //                                               stopping at the first failure)
 //   init_script: string[]                      (typed into every terminal 2code opens)
 //   terminal_templates: { name, cwd?, commands: string[] }[]
-import { readTextFile, home } from "herdr";
+import { shared, setShared } from "herdr";
 
+const KEY = "2code.config";
 const lines = (v) => (Array.isArray(v) ? v.map(String).map((s) => s.trim()).filter(Boolean) : []);
+const keyOf = (path, on) => `${on ?? ""}:${path}`;
 
 function normalize(raw) {
   const c = raw && typeof raw === "object" ? raw : {};
@@ -20,19 +25,25 @@ function normalize(raw) {
   };
 }
 
-async function read(path, on) {
-  const text = await readTextFile(path, { on }).catch(() => null);
-  if (text === null) return { ...normalize(null), path, missing: true };
-  try {
-    return { ...normalize(JSON.parse(text)), path };
-  } catch (e) {
-    return { ...normalize(null), path, error: String(e?.message ?? e) };
-  }
+function store() {
+  const v = shared(KEY);
+  return { global: v?.global ?? {}, projects: v?.projects ?? {} };
 }
 
-export const globalConfigPath = () => `${home()}/2code/2code.json`;
-export const readGlobalConfig = () => read(globalConfigPath(), null);
-export const readProjectConfig = (top, on) => (top ? read(`${top}/2code.json`, on) : Promise.resolve({ ...normalize(null), missing: true }));
+// As stored, for the settings dialog (it keeps fields it doesn't know).
+export const rawGlobalConfig = () => store().global;
+export const rawProjectConfig = (path, on) => (path ? store().projects[keyOf(path, on)] ?? {} : {});
+
+export const readGlobalConfig = async () => normalize(rawGlobalConfig());
+export const readProjectConfig = async (path, on) => normalize(rawProjectConfig(path, on));
+
+const empty = (data) => Object.values(data).every((v) => Array.isArray(v) && !v.length);
+
+export function saveConfig({ path, on, project, global }) {
+  const s = store(), projects = { ...s.projects }, k = keyOf(path, on);
+  if (path && project) { if (empty(project)) delete projects[k]; else projects[k] = project; }
+  setShared(KEY, { global: global ?? s.global, projects });
+}
 
 // A POSIX-quoted word for sh.
 export const quote = (s) => `'${String(s).replace(/'/g, `'\\''`)}'`;

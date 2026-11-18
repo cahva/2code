@@ -1,5 +1,5 @@
-// The terminal templates menu: the project's (2code.json at the checkout's root)
-// and the global ones (~/2code/2code.json). Picking one opens a tab named after
+// The terminal templates menu: the project's and the global ones (lib/config.js,
+// kept in Herdr's shared state). Picking one opens a tab named after
 // it, in its folder, and types its commands after the project's init script.
 import { div } from "gpui-kit";
 import { v_flex, h_flex } from "gpui-base";

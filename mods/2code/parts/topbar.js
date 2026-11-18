@@ -139,7 +139,7 @@ export class Topbar {
       .when(Boolean(pr), (el) => el.child(this.prChip(pr, th)))
       .when(Boolean(repo && !on), (el) => el.child(ghost("open-in", "external-link", t("openIn"),
         () => openOverlay({ mod: "2code", kind: "popup", width: 220, height: 360, props: { part: "openIn", path: repo.top } }))))
-      // As in 2code, the gear is the project's settings (its 2code.json).
+      // As in 2code, the gear is the project's settings.
       .child(ghost("project-settings", "settings", t("projectSettings"), () => {
         if (!repo) return run("app.settings");
         openOverlay({ mod: "2code", kind: "dialog", width: 640, height: 0.8, props: { part: "projectSettings", path: repo.main, machine: on, name } });
