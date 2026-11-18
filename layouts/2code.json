@@ -6,10 +6,6 @@
     16,
     19
   ],
-  "theme": {
-    "light": "2code-light",
-    "dark": "2code-dark"
-  },
   "font": "JetBrains Mono",
   "font_size": 13,
   "terminal_padding": [
